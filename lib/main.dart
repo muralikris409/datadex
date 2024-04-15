@@ -220,7 +220,20 @@ class _ChatPageState extends State<ChatPage> {
       text: "hai im your data assistant im under development",
     );
     _addMessage(reply);
-  }}
+  }
+  else{
+      final reply = types.TextMessage(
+        author: const types.User(
+            id: "datadexapi"
+        ),
+
+        createdAt: DateTime.now().millisecondsSinceEpoch,
+        id: const Uuid().v4(),
+        text: "db is under development",
+      );
+      _addMessage(reply);
+    }
+  }
 
   void _loadMessages() async {
     final response = await rootBundle.loadString('assets/messages.json');
