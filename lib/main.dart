@@ -200,7 +200,7 @@ class _ChatPageState extends State<ChatPage> {
     });
   }
 
-  void _handleSendPressed(types.PartialText message) {
+  void _handleSendPressed (types.PartialText message) async {
     final textMessage = types.TextMessage(
       author: _user,
       createdAt: DateTime.now().millisecondsSinceEpoch,
@@ -222,6 +222,18 @@ class _ChatPageState extends State<ChatPage> {
     _addMessage(reply);
   }
   else{
+    var msg=textMessage.text;
+    int idx=msg.indexOf("#");
+    int idx1=msg.indexOf(":");
+    var key=msg.substring(idx+1,idx1);
+    var value=msg.substring(idx1+1,msg.length);
+    var url = Uri.parse('http://127.0.0.1:5000/ins_dex');
+    var headers = {'Content-Type': 'application/json'};
+    var body = jsonEncode({'key':key,'value':value});
+
+    try {
+      var response = await http.post(url, headers: headers, body: body);
+      print('Response: ${response.body}');
       final reply = types.TextMessage(
         author: const types.User(
             id: "datadexapi"
@@ -229,10 +241,24 @@ class _ChatPageState extends State<ChatPage> {
 
         createdAt: DateTime.now().millisecondsSinceEpoch,
         id: const Uuid().v4(),
-        text: "db is under development",
+        text:response.body,
+      );
+      _addMessage(reply);
+
+
+    } catch (e) {
+      final reply = types.TextMessage(
+        author: const types.User(
+            id: "datadexapi"
+        ),
+
+        createdAt: DateTime.now().millisecondsSinceEpoch,
+        id: const Uuid().v4(),
+        text:e.toString(),
       );
       _addMessage(reply);
     }
+  }
   }
 
   void _loadMessages() async {
