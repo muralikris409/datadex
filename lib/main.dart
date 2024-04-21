@@ -1,5 +1,6 @@
 import 'dart:convert';
 import 'dart:io';
+import 'dart:math';
 
 import 'package:file_picker/file_picker.dart';
 import 'package:flutter/material.dart';
@@ -13,7 +14,31 @@ import 'package:mime/mime.dart';
 import 'package:open_filex/open_filex.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:uuid/uuid.dart';
-
+var random=Random();
+List<String> res_msg=[
+  "Your data has been successfully added to the database. You can access it anytime you want. Is there anything else I can help you with?",
+  "Data insertion into the database is complete. Feel free to access it whenever needed. How else can I assist you?",
+  "The database has been updated with your data. It's now ready for retrieval whenever you require. What's your next step?",
+  "Your information has been securely stored in the database. Whenever you're ready, you can retrieve it. What else would you like to do?",
+  "Your data has been securely saved in our database. You can access it whenever needed. Do you have any other requests?",
+  "Your data has been successfully stored in our database. It's available for you whenever you need it. Do you need assistance with anything else?",
+  "Your data has been granted access to our database. It's available for you whenever you need it. Do you have any other requests?",
+  "Your data is now safely stored in our database. Whenever you require it, it's ready for use. Is there anything more I can do for you?",
+  "Your data is now part of our database. Whenever you require it, it's ready for use. Is there anything more I can do for you?",
+  "Your data has been added to our database. It's ready for use whenever you need it. What would you like to do next?",
+  "Your data has been successfully uploaded to the database. It's available for you to access whenever you need it. How else may I assist you?",
+  "The database has been updated with your information. You can now access it whenever needed. Do you require any further assistance?",
+  "Your information has been securely saved in our database. Whenever you need it, you can access it. What else can I help you with?",
+  "Your data has been safely stored in our database. It's available for you whenever you need it. Do you require any other assistance?",
+  "Your data has been added to our database. It's now ready for you to access whenever needed. Is there anything else you need assistance with?",
+  "Your data has been successfully inserted into the database. You can now access it whenever you want. Do you need help with anything else?",
+  "Data insertion into the database has been completed. It's now available for you to access. How else can I assist you?",
+  "The database has been updated with your data. It's now ready for retrieval whenever you require. What's your next step?",
+  "Your information has been securely stored in the database. Whenever you're ready, you can retrieve it. What else would you like to do?",
+  "Your data has been securely saved in our database. You can access it whenever needed. Do you have any other requests?",
+  "Your data has been successfully stored in our database. It's available for you whenever you need it. Do you need assistance with anything else?",
+  "Your data has been granted access to our database. It's available for you whenever you need it. Do you have any other requests?"
+];
 void main() {
   initializeDateFormatting().then((_) => runApp(const MyApp()));
 }
@@ -209,19 +234,46 @@ class _ChatPageState extends State<ChatPage> {
     );
 
     _addMessage(textMessage);
-    if(!textMessage.text.contains("#")){
-    final reply = types.TextMessage(
-      author: const types.User(
-        id: "datadexapi"
-      ),
+    if(!textMessage.text.contains("#")&&!textMessage.text.contains(":")&&!textMessage.text.contains("dex --getAll")){
+      var value=textMessage.text.toString();
+      var url = Uri.parse('http://127.0.0.1:5000/chat');
+      var headers = {'Content-Type': 'application/json'};
+      var body = jsonEncode({'query':value});
 
-      createdAt: DateTime.now().millisecondsSinceEpoch,
-      id: const Uuid().v4(),
-      text: "hai im your data assistant im under development",
-    );
-    _addMessage(reply);
+      try {
+        var response = await http.post(url, headers: headers, body: body);
+        Map<String, dynamic> jsonMap = json.decode(response.body);
+
+        print(response.body);
+        final reply = types.TextMessage(
+          author: const types.User(
+              id: "datadexapi"
+          ),
+
+          createdAt: DateTime
+              .now()
+              .millisecondsSinceEpoch,
+          id: const Uuid().v4(),
+          text: jsonMap["response"],
+        );
+        _addMessage(reply);
+      }
+      catch(e){
+        final reply = types.TextMessage(
+          author: const types.User(
+              id: "datadexapi"
+          ),
+
+          createdAt: DateTime
+              .now()
+              .millisecondsSinceEpoch,
+          id: const Uuid().v4(),
+          text: "DataDex server is not responding try again later :)",
+        );
+        _addMessage(reply);
+      }
   }
-  else{
+  else if(textMessage.text.contains("#")&&textMessage.text.contains(":")){
     var msg=textMessage.text;
     int idx=msg.indexOf("#");
     int idx1=msg.indexOf(":");
@@ -241,7 +293,11 @@ class _ChatPageState extends State<ChatPage> {
 
         createdAt: DateTime.now().millisecondsSinceEpoch,
         id: const Uuid().v4(),
-        text:response.body,
+
+          text:res_msg[random.nextInt(20)],
+
+
+
       );
       _addMessage(reply);
 
@@ -254,11 +310,75 @@ class _ChatPageState extends State<ChatPage> {
 
         createdAt: DateTime.now().millisecondsSinceEpoch,
         id: const Uuid().v4(),
-        text:e.toString(),
+        text:"DataDex service is currently down kindly try after sometime 😊 ",
       );
       _addMessage(reply);
     }
   }
+  else{
+    if(textMessage.text.contains("#help")){
+      final reply = types.TextMessage(
+        author: const types.User(
+            id: "datadexapi"
+        ),
+
+        createdAt: DateTime.now().millisecondsSinceEpoch,
+        id: const Uuid().v4(),
+        text:"Help",
+      );
+      _addMessage(reply);
+    }
+    else{
+      if(textMessage.text.contains("dex --getAll")){
+        try{
+          var res = await http.get(Uri.parse("http://127.0.0.1:5000/getall"));
+          if (res.statusCode == 200) {
+            var jsonMap = json.decode(res.body);  // Decode the response body
+            var formattedText = '';
+            jsonMap.forEach((key, value) {
+              formattedText += '$key: $value\n';
+            });
+            final reply = types.TextMessage(
+              author: const types.User(
+                  id: "datadexapi"
+              ),
+              createdAt: DateTime.now().millisecondsSinceEpoch,
+              id: const Uuid().v4(),
+              text: formattedText, // Set the text to the formatted key-value pairs
+            );
+            _addMessage(reply);
+          } else {
+            print('Failed to load data: ${res.statusCode}');
+          }
+
+
+        }
+            catch(e){
+              final reply = types.TextMessage(
+                author: const types.User(
+                    id: "datadexapi"
+                ),
+
+                createdAt: DateTime.now().millisecondsSinceEpoch,
+                id: const Uuid().v4(),
+                text:e.toString(),
+              );
+              _addMessage(reply);
+            }
+      }
+      else{
+      final reply = types.TextMessage(
+        author: const types.User(
+            id: "datadexapi"
+        ),
+
+        createdAt: DateTime.now().millisecondsSinceEpoch,
+        id: const Uuid().v4(),
+        text:"DataDex service is currently down kindly try after sometime 😊 ",
+      );
+      _addMessage(reply);
+    }}
+    }
   }
 
   void _loadMessages() async {
