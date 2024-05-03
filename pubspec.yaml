@@ -39,6 +39,7 @@ dependencies:
   flutter_chat_ui: ^1.6.12
   firebase_core: ^2.28.0
   firebase_auth: ^4.19.0
+
   animated_text_kit: ^4.2.2
   file_picker: ^8.0.0+1
   http: ^1.2.1

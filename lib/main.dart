@@ -1,7 +1,8 @@
 import 'dart:convert';
 import 'dart:io';
+import 'dart:js_interop';
 import 'dart:math';
-
+import 'package:animated_text_kit/animated_text_kit.dart';
 import 'package:file_picker/file_picker.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart' show rootBundle;
@@ -268,11 +269,51 @@ class _ChatPageState extends State<ChatPage> {
               .now()
               .millisecondsSinceEpoch,
           id: const Uuid().v4(),
-          text: "DataDex server is not responding try again later :)",
+          text: e.toString(),
         );
         _addMessage(reply);
       }
   }
+    else if(textMessage.text.contains("#")&&!textMessage.text.contains(":")){
+      var msg=textMessage.text;
+      int idx=msg.indexOf("#");
+      var key=msg.substring(idx+1,msg.length);
+      var url = Uri.parse('http://127.0.0.1:5000/trie');
+      var headers = {'Content-Type': 'application/json'};
+      var body = jsonEncode({'key':key});
+      try {
+        var response = await http.post(url, headers: headers, body: body);
+        print('Response: ${response.body}');
+        Map<String, dynamic> jsonResponse = json.decode(response.body);
+        print(jsonResponse);
+        final reply = types.TextMessage(
+          author: const types.User(
+              id: "datadexapi"
+          ),
+          createdAt: DateTime.now().millisecondsSinceEpoch,
+          id: const Uuid().v4(),
+
+          text:"Your "+key+ " info:"+jsonResponse[key],
+
+
+
+        );
+        _addMessage(reply);
+
+
+      } catch (e) {
+        final reply = types.TextMessage(
+          author: const types.User(
+              id: "datadexapi"
+          ),
+
+          createdAt: DateTime.now().millisecondsSinceEpoch,
+          id: const Uuid().v4(),
+          text:e.toString(),
+        );
+        _addMessage(reply);
+      }
+    }
   else if(textMessage.text.contains("#")&&textMessage.text.contains(":")){
     var msg=textMessage.text;
     int idx=msg.indexOf("#");
@@ -324,7 +365,7 @@ class _ChatPageState extends State<ChatPage> {
 
         createdAt: DateTime.now().millisecondsSinceEpoch,
         id: const Uuid().v4(),
-        text:"Help",
+        text:"Datadex is a comprehensive solution that combines chat assistance with robust data storage and retrieval capabilities, ensuring users can easily interact with their data and access information whenever they need it.",
       );
       _addMessage(reply);
     }
@@ -371,7 +412,6 @@ class _ChatPageState extends State<ChatPage> {
         author: const types.User(
             id: "datadexapi"
         ),
-
         createdAt: DateTime.now().millisecondsSinceEpoch,
         id: const Uuid().v4(),
         text:"DataDex service is currently down kindly try after sometime 😊 ",
@@ -394,6 +434,32 @@ class _ChatPageState extends State<ChatPage> {
 
   @override
   Widget build(BuildContext context) => Scaffold(
+    appBar: AppBar(
+      title: AnimatedTextKit(
+        animatedTexts: [
+          TypewriterAnimatedText(
+            'DATADEX',
+            textStyle: const TextStyle(
+              fontSize: 32.0,
+              letterSpacing: 6,
+              color: Colors.white,
+
+            ),
+            speed: const Duration(milliseconds: 300),
+
+          ),
+        ],
+
+        totalRepeatCount: 1,
+        pause: const Duration(milliseconds: 300),
+        displayFullTextOnTap: true,
+        stopPauseOnTap: true,
+      ),
+      centerTitle: true,
+      backgroundColor:Colors.black87,
+
+
+    ),
     body: Container(
       height: MediaQuery.of(context).size.height,
       width: MediaQuery.of(context).size.width,
